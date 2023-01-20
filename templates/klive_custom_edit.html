@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!--<script src="https://raw.githack.com/SortableJS/Sortable/master/Sortable.js"></script>-->
+<script src="{{ url_for('static', filename='js/Sortable.js') }}"></script>
+<div>
+  {{ macros.m_button_group([['get_saved_custom_btn', '다시 읽기'], ['custom_auto_btn', '자동 채널 번호 부여'], ['custom_edit_save_btn', '저장']])}}
+  {{ macros.m_row_start('0') }}
+  {{ macros.m_row_end() }}
+
+  {{ macros.m_hr_head_top() }}
+  {{ macros.m_row_start('0') }}
+  {{ macros.m_col(1,  macros.m_strong('Idx')) }}
+  {{ macros.m_col(1,  macros.m_strong('Source')) }}
+  {{ macros.m_col(1,  macros.m_strong('Source ID')) }}
+  {{ macros.m_col(2,  macros.m_strong('Name')) }}
+  {{ macros.m_col(1,  macros.m_strong('Quality')) }}
+  {{ macros.m_col(1,  macros.m_strong('Number')) }}
+  {{ macros.m_col(2,  macros.m_strong('Group')) }}
+  {{ macros.m_col(2,  macros.m_strong('Action')) }}
+  {{ macros.m_col(1,  macros.m_strong('Move')) }}
+  {{ macros.m_row_end() }}
+  {{ macros.m_hr_head_bottom() }}
+  <form id="custom_form" name="custom_form">
+  <div id="list_div" class="list-group"></div>
+  </form>
+</div>
+
+<script type="text/javascript">
+var package_name = "{{arg['package_name']}}"
+var current_data = null;
+var ddns = "{{arg['ddns']}}"
+var apikey = "{{arg['auth_apikey']}}"
+var auth_use_apikey = ("{{arg['auth_use_apikey']}}" == 'True')
+
+const nestedSortables = document.querySelectorAll('.list-group');
+
+/* MultiDrag 처리 : start */
+for (var i = 0; i < nestedSortables.length; i++) {
+  new Sortable(nestedSortables[i], {
+    group: 'whatever',
+    animation: 150,
+    fallbackOnBody: true,
+    swapThreshold: 0.65,
+    emptyInsertThreshold: 8,
+    handle: '.sort-icon',
+    filter: '.filtered',
+    multiDrag: true,
+    selectedClass: 'selected',
+    onEnd: (evt) => {
+      if (evt.items.length == 0) {
+        //console.log('move:'+evt.oldIndex+'->'+evt.newIndex);
+	tmp = current_data.splice(evt.oldIndex, 1)[0];
+	current_data.splice(evt.newIndex, 0, tmp);
+	//current_data.move(evt.oldIndex, evt.newIndex);
+      } else {
+        var olds = new Array();
+        var news = new Array();
+        var moved= new Array();
+        var i = 0;
+        evt.oldIndicies.forEach((item) => {
+	  if (item.index != -1) {
+            olds[i] = item.index;
+            i++
+	  }
+        })
+        i = 0;
+	len_moved = olds.length;
+        evt.newIndicies.forEach((item) => {
+	  if (item.index != -1 && i < len_moved) {
+            news[i] = item.index
+            i++
+	  }
+        })
+	//console.log('moved: '+len_moved);
+	//console.log('olds : '+olds.join());
+	//console.log('news : '+news.join());
+	// 이동된 항목 제거: 뒤에서부터
+	for (i = len_moved-1; i >= 0; i--) {
+	  moved[i] = current_data.splice(olds[i], 1);
+	}
+	// 새로운 위치에 추가: 앞에서부터
+	for (i = 0; i < len_moved; i++) {
+	  current_data.splice(news[i], 0, moved[i][0]);
+	}
+      }
+      make_list(current_data, 'saved');
+    }
+  });
+}
+/* MultiDrag 처리 : end */
+
+
+$(document).ready(function(){
+  /* multiDrag 체크 CSS */
+  let csslen = document.styleSheets[0].cssRules.length;
+  document.styleSheets[0].insertRule('.tinted {background-color: #fff6b2 !important;}', csslen);
+  document.styleSheets[0].insertRule('.selected {background-color: #bdbdbd !important;opacity: 0.6;border: solid #1c1c1c 1px !important;z-index: 1 !important;}', csslen+1);
+  document.styleSheets[0].insertRule('.sort-icon { float: right; font-size: 16px; }', csslen+2);
+  document.styleSheets[0].insertRule('.sort-icon:hover { cursor: move;', csslen+3);
+  $.ajax({
+    url: '/' + package_name + '/ajax/get_saved_custom',
+    type: "POST", 
+    cache: false,
+    data: {},
+    dataType: "json",
+    success: function (data) {
+      current_data = data;
+      make_list(data, 'saved')
+    }
+  });
+});
+
+$("body").on('click', '#custom_edit_save_btn', function(e){
+  e.preventDefault();
+  var formData = get_formdata('#custom_form');
+  $.ajax({
+    url: '/' + package_name + '/ajax/custom_edit_save',
+    type: "POST", 
+    cache: false,
+    data:formData,
+    dataType: "json",
+    success: function (data) {
+      if (data) {
+        $.notify('<strong>저장하였습니다.</strong>', {
+          type: 'success'
+        });
+        current_data = data;
+        make_list(data, 'saved')
+      } else {
+        $.notify('<strong>실패</strong><br>'+data.data, {
+          type: 'warning'
+        });
+      }
+    }
+  });
+});
+
+
+
+$("body").on('click', '#custom_auto_btn', function(e){
+  e.preventDefault();
+  make_list(current_data, 'auto')
+});
+
+$("body").on('click', '#get_saved_custom_btn', function(e){
+  e.preventDefault();
+  make_list(current_data, 'saved')
+});
+
+$("body").on('click', '#delete_btn', function(e){
+  e.preventDefault();
+  data_id = $(this).data('id')
+  $.ajax({
+    url: '/' + package_name + '/ajax/custom_delete',
+    type: "POST", 
+    cache: false,
+    data:{id:data_id},
+    dataType: "json",
+    success: function (data) {
+      if (data) {
+        $.notify('<strong>삭제하였습니다.</strong>', {
+          type: 'success'
+        });
+        current_data = data;
+        make_list(data, 'saved')
+      } else {
+        $.notify('<strong>실패</strong><br>'+data.data, {
+          type: 'warning'
+        });
+      }
+    }
+  });
+});
+
+
+$("body").on('click', '#up_btn', function(e){
+  e.preventDefault();
+  target_id = $(this).data('index')
+  target = current_data[target_id]
+  if (target_id != 0) {
+    current_data.splice(target_id, 1);
+    current_data.splice(target_id-1, 0, target);
+  }
+  make_list(current_data, 'saved')
+});
+
+$("body").on('click', '#down_btn', function(e){
+  e.preventDefault();
+  target_id = $(this).data('index')
+  target = current_data[target_id]
+  if (current_data.length -1 != target_id) {
+    current_data.splice(target_id, 1);
+    current_data.splice(target_id+1, 0, target);
+  }
+  make_list(current_data, 'saved')
+});
+
+
+
+
+
+
+
+function make_list(data, how) {
+  str = '';
+  channel_number = 0
+  /* i in data로 할때 data에 undefined dummy 값이 생기는 경우가 있어 data.length로 변경 */
+  for (var i=0; i < data.length; i++) {
+    //str += m_row_start_hover();
+    /* MultiDrag div set */
+    str += '<div class="row list-group-item" style="text-align: left; word-break:break-all; display: inline-flex;">';
+    str += m_col(1, parseInt(i)+1);
+    str += m_col(1, data[i].source)
+    str += m_col(1, data[i].source_id)
+    str += m_col(2, data[i].title)
+
+    tmp_id = data[i].source + '|' + data[i].source_id
+    tmp = ""
+    if (data[i].source == 'wavve' || data[i].source == 'tving') {
+      tmp_quality_id = tmp_id + '|quality'
+      tmp = '<select id="'+tmp_quality_id+'" name="'+tmp_quality_id+'" class="form-control form-control-sm">'
+      arr = ['default', 'FHD', 'HD', 'SD']
+      for (j in arr) {
+        if (data[i].quality == arr[j]) {
+          tmp += '<option value="' + arr[j] + '" selected>' + arr[j] + '</option>' 
+        } else {
+          tmp += '<option value="' + arr[j] + '">' + arr[j] + '</option>'
+        }
+      }
+      tmp += '</select>'
+    } else {
+      tmp += data[i].quality
+    }
+    str += m_col(1, tmp)
+
+    tmp_number_id = tmp_id + '|number'
+    if (how == 'saved') {
+      tmp = '<input id="'+tmp_number_id+'" name="'+tmp_number_id+'" type="number" class="form-control form-control-sm" min="0" value="'+data[i].number+'">'
+    } else if (how == 'auto') {
+      //if (data[i].number == 0) {
+        channel_number += 1
+        tmp = '<input id="'+tmp_number_id+'" name="'+tmp_number_id+'" type="number" class="form-control form-control-sm" min="0" value="'+channel_number+'">'
+      //} else {
+      //  tmp = '<input id="'+tmp_number_id+'" name="'+tmp_number_id+'" type="number" class="form-control form-control-sm" min="0" value="'+data[i].number+'">'
+      //}
+    }
+    str += m_col(1, tmp)
+    tmp_group_id = tmp_id + '|group'
+    tmp = '<input id="'+tmp_group_id+'" name="'+tmp_group_id+'" type="text" class="form-control form-control-sm" value="'+data[i].group+'">'
+    str += m_col(2, tmp)
+
+    tmp = ''
+    // 불필요 버튼 제거 up/down
+    //tmp += m_button('up_btn', 'UP', [{'key':'index', 'value':i}]);
+    //tmp += m_button('down_btn', 'DOWN', [{'key':'index', 'value':i}]);
+    tmp += m_button('delete_btn', '삭제', [{'key':'id', 'value':tmp_id}]);
+    url = ddns + "/" + package_name + "/api/url.m3u8?m=url&s=" + data[i].source + "&i=" + data[i].source_id + '&q=' + data[i].quality
+    if (auth_use_apikey) url = url + '&apikey=' + apikey
+    tmp += m_button('global_link_btn', 'Open', [{'key':'url', 'value':url}]);
+    tmp = m_button_group(tmp)
+    str += m_col(2, tmp)
+    str += m_col(1, '<div class="sort-icon" style="align:left;">&nbsp;⇅ &nbsp;</div>')
+
+    str += m_row_end();
+    /* m_hr() 제거 : 이것도 drag대상으로 인식해서 오류 발생함 */
+    //if (i != data.length -1) str += m_hr(0);
+  }
+  document.getElementById("list_div").innerHTML = str;
+}
+
+</script>    
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div>
+  {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']])}}
+  {{ macros.m_row_start('5') }}
+  {{ macros.m_row_end() }}
+  <nav>
+    {{ macros.m_tab_head_start() }}
+      {{ macros.m_tab_head2('wavve', '웨이브', true) }}
+      {{ macros.m_tab_head2('tving', '티빙', false) }}
+      {{ macros.m_tab_head2('seezn', '시즌', false) }}
+      {{ macros.m_tab_head2('ott_etc', '기타', false) }}
+      {{ macros.m_tab_head2('youtubedl', 'Youtube-dl', false) }}
+      {{ macros.m_tab_head2('streamlink', 'streamlink', false) }}
+      {{ macros.m_tab_head2('navertv', '네이버 TV', false) }}
+      {{ macros.m_tab_head2('kakaotv', 'kakao TV', false) }}
+      {{ macros.m_tab_head2('direct', '고정주소', false) }}
+      {{ macros.m_tab_head2('api', 'API', false) }}
+    {{ macros.m_tab_head_end() }}
+  </nav>
+  <form id='setting' name='setting'>
+  <div class="tab-content" id="nav-tabContent">
+    {{ macros.m_tab_content_start('wavve', true) }}
+      {{ macros.setting_checkbox('use_wavve', '웨이브', value=arg['use_wavve'], desc=['계정 정보 없을 경우 10분간 재생', '무료 계정 HD 재생', '유료계정 FHD 재생']) }}
+      <div id="use_wavve_div" class="collapse">
+        {{ macros.setting_select('wavve_quality', '웨이브 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['wavve_quality'])}}
+        {{ macros.setting_radio('wavve_streaming_type', 'Wavve 스트리밍 타입', ['직접연결', 'SJVA사용', 'Redirect'], value=arg['wavve_streaming_type'], desc=['웨이브는 방송 요청을 한 IP와 Player IP가 일치해야만 합니다.', 'Redirect : 가장 좋습니다만 Player에 따라 10분 후 중지될 수 있습니다.', '중지가 안된다면 이 방법으로 사용하세요. 동일 네트워크의 Tvheadend에 연결할 때 사용합니다.', '직접연결 : SJVA와 Player가 동일 네트워크 일 때 사용합니다. SJVA사용 옵션보다 성능이 좋습니다.', 'SJVA사용 : 타 네트워크에서 재생할 때 사용합니다. SJVA가 방송 데이터를 받아서 Player에 보냅니다.']) }}
+        {{ macros.m_hr() }}
+        {{ macros.setting_input_int('wavve_vod_page', 'VOD 탐색 페이지', value=arg['wavve_vod_page'], min='1', desc=['최신 VOD 탐색 페이지 수']) }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('tving', false) }}
+      {{ macros.setting_checkbox('use_tving', 'tving', value=arg['use_tving'], desc=['무료 계정 HD 재생', '유료계정 FHD 재생. OCN는 DRM채널 불가']) }}
+      <div id="use_tving_div" class="collapse">
+        {{ macros.setting_select('tving_quality', '티빙 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['tving_quality'])}}
+        {{ macros.setting_checkbox('tving_include_drm', 'DRM 채널 포함', value=arg['tving_include_drm'], desc=['On : OCN 등 DRM 채널 포함.']) }}
+        {{ macros.m_hr() }}
+        {{ macros.setting_input_int('tving_vod_page', 'VOD 탐색 페이지', value=arg['tving_vod_page'], min='1', desc=['최신 VOD 탐색 페이지 수']) }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('seezn', false) }}
+      {{ macros.setting_checkbox('use_seezn', 'seezn', value=arg['use_seezn'], desc=['계정 정보 없을 경우 3분간 재생', '유료/무료계정 FHD 재생.', '무료계정은 권한 있는 채널만 재생.']) }}
+      <div id="use_seezn_div" class="collapse">
+        {{ macros.setting_select('seezn_quality', '시즌 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['seezn_quality'])}}
+        {{ macros.setting_checkbox('seezn_include_drm', 'DRM 채널 포함', value=arg['seezn_include_drm'], desc=['On : OCN 등 DRM 채널 포함.']) }}
+        {{ macros.setting_checkbox('seezn_adult', '성인 채널 포함', value=arg['seezn_adult'], desc=['On : 성인 채널 포함.']) }}
+        {{ macros.setting_input_textarea('seezn_cookie', 'cookie', value=arg['seezn_cookie'], row=10, desc=['사이트 로그인 후 SSOValidate=xxxx 형태의 쿠키 입력.']) }}
+        {{ macros.setting_checkbox('seezn_use_proxy', 'Proxy 사용', value=arg['seezn_use_proxy'], desc=['URL을 얻을 때만 사용합니다.']) }}
+        <div id="seezn_use_proxy_div" class="collapse">
+          {{ macros.setting_input_text('seezn_proxy_url', 'Proxy URL', value=arg['seezn_proxy_url'], desc=['']) }}
+        </div>
+
+        {{ macros.setting_radio('seezn_play_mode', 'Play Mode', ['Auto', 'Redirect', 'Return'], value=arg['seezn_play_mode'], desc=['Auto : 무료 사용자의 경우 쿠키값을 지우고 이 값 설정', 'Redirect : 유료 채널 시청 권한이 있는 경우 쿠키값을 입력하고 이 값 설정.', 'Return : 테스트용. 일반적으로 설정 불필요']) }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('ott_etc', false) }}
+      {{ macros.setting_checkbox('use_kbs', 'KBS', value=arg['use_kbs'], desc=None) }}
+      {{ macros.m_hr() }}
+      {{ macros.setting_checkbox('use_mbc', 'MBC', value=arg['use_mbc'], desc=None) }}
+      {{ macros.m_hr() }}
+      {{ macros.setting_checkbox('use_sbs', 'SBS', value=arg['use_sbs'], desc=None) }}
+      {{ macros.setting_checkbox('sbs_use_proxy', 'Proxy 사용', value=arg['sbs_use_proxy'], desc=['URL을 얻을 때만 사용']) }}
+      {{ macros.setting_input_text('sbs_proxy_url', 'Proxy URL', value=arg['sbs_proxy_url'], desc=None) }}
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('youtubedl', false) }}
+      {{ macros.setting_checkbox('use_youtubedl', 'Youtube-dl', value=arg['use_youtubedl'], desc=None) }}
+      <div id="use_youtubedl_div" class="collapse">
+        {{ macros.info_text_and_buttons('tmp_is_youtubedl_installed', '설치상태', [['youtubedl_install_btn', '설치']], value=arg['tmp_is_youtubedl_installed'], desc=['자주 업데이트 되기 때문에 이상이 있을 경우 다시 설치하시기 바랍니다.']) }}
+        {{ macros.setting_checkbox('youtubedl_use_proxy', 'Proxy 사용', value=arg['youtubedl_use_proxy'], desc=['URL을 얻을 때만 사용']) }}
+        {{ macros.setting_input_text('youtubedl_proxy_url', 'Proxy URL', value=arg['youtubedl_proxy_url'], desc=['참고 : https://www.proxynova.com/proxy-server-list/country-kr']) }}
+        {{ macros.setting_input_textarea('youtubedl_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL', '채널별 구분자 Enter'], value=arg['youtubedl_list'], row='20') }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+    
+    {{ macros.m_tab_content_start('streamlink', false) }}
+      {{ macros.setting_checkbox('use_streamlink', 'streamlink', value=arg['use_streamlink'], desc=None) }}
+      <div id="use_streamlink_div" class="collapse">
+        {{ macros.info_text_and_buttons('tmp_is_streamlink_installed', '설치상태', [['streamlink_install_btn', '설치']], value=arg['tmp_is_streamlink_installed'], desc=['도커 지원.', '그외 환경에서는 pip 명령만 보내나 컴파일이 필요한 모듈이 있어 설치가 실패할 수도 있습니다.', '이 경우는 각자 알아서 설치하시기 바랍니다.']) }}
+        {{ macros.setting_input_text('streamlink_quality', 'streamlink 화질', col='3', value=arg['streamlink_quality']) }}
+        {{ macros.setting_input_textarea('streamlink_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL', '채널별 구분자 Enter'], value=arg['streamlink_list'], row='20') }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+      
+    {{ macros.m_tab_content_start('navertv', false) }}
+      {{ macros.setting_checkbox('use_navertv', '네이버 TV', value=arg['use_navertv'], desc=None) }}
+      <div id="use_navertv_div" class="collapse">
+        {{ macros.setting_input_textarea('navertv_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL|화질. |화질 생략시 1080', '채널별 구분자 Enter'], value=arg['navertv_list'], row='20') }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('kakaotv', false) }}
+      {{ macros.setting_checkbox('use_kakaotv', 'kakao TV', value=arg['use_kakaotv'], desc=None) }}
+      <div id="use_kakaotv_div" class="collapse">
+        {{ macros.setting_input_textarea('kakaotv_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL', '채널별 구분자 Enter. 360p만 가능'], value=arg['kakaotv_list'], row='20') }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+    {{ macros.m_tab_content_start('direct', false) }}
+      {{ macros.setting_checkbox('use_fix_url', '고정주소', value=arg['use_fix_url'], desc=None) }}
+      <div id="use_fix_url_div" class="collapse">
+        {{ macros.setting_input_textarea('fix_url_list', '채널 목록', desc=['형식 : 채널ID|채널이름|채널URL|{TV면 Y, 라디오면 N}', '채널별 구분자 Enter', '참고 : https://iptvcat.com/south_korea'], value=arg['fix_url_list'], row='20') }}
+      </div>
+    {{ macros.m_tab_content_end() }} 
+
+
+    {{ macros.m_tab_content_start('api', false) }}
+      {{ macros.info_text_go('api_m3u', 'M3U', value=arg['api_m3u'], desc=['Custom 채널에 대한 M3U']) }}
+      {{ macros.info_text_go('api_m3utvh', 'M3U for Tvheadend', value=arg['api_m3utvh'], desc=['Tvheadend 채널 등록시 사용하는 M3U']) }}
+      {{ macros.info_text_go('xmltv', 'XMLTV', value=arg['xmltv'], desc=['일반 EPG']) }}
+      {{ macros.info_text_go('api_m3uall', 'M3U (All)', value=arg['api_m3uall']) }}
+      {{ macros.setting_checkbox('use_plex_proxy', 'Plex Proxy API 사용', value=arg['use_plex_proxy'], desc=['On: Plex Proxy API 사용.', '/klive/proxy/lineup.json 주소를 통한 apikey 노출 됨.']) }}
+      <div id="use_plex_proxy_div" class="collapse">
+        {{ macros.info_text_go('plex_proxy', 'Plex Proxy', value=arg['plex_proxy']) }}
+      </div>
+      <!--
+      {{ macros.m_hr() }}
+      {{ macros.info_text_go('wavve_vod', '웨이브 최신 VOD m3u', value=arg['wavve_vod']) }}
+      {{ macros.info_text_go('tving_vod', '티빙 최신 VOD m3u', value=arg['tving_vod']) }}
+      -->
+    {{ macros.m_tab_content_end() }}
+    </form>
+</div>
+
+ 
+<script type="text/javascript">
+var package_name = 'klive';
+var current_data = null;
+var youtubedl_installed = "{{ arg['tmp_is_youtubedl_installed'] }}"  == 'Installed' ? true : false;
+var streamlink_installed = "{{ arg['tmp_is_streamlink_installed'] }}"  == 'Installed' ? true : false;
+
+
+$(document).ready(function(){
+  use_collapse("use_wavve")
+  use_collapse("use_tving")
+  use_collapse("use_seezn")
+  use_collapse("seezn_use_proxy")
+  use_collapse("use_streamlink")
+  use_collapse("use_youtubedl")
+  use_collapse("use_navertv")
+  use_collapse("use_kakaotv")
+  use_collapse("use_fix_url")
+  use_collapse("use_plex_proxy");
+});
+
+$('#use_wavve').change(function() {use_collapse('use_wavve');});
+$('#use_tving').change(function() {use_collapse('use_tving');});
+$('#use_seezn').change(function() {use_collapse('use_seezn');});
+$('#seezn_use_proxy').change(function() {use_collapse('seezn_use_proxy');});
+$('#use_streamlink').change(function() {use_collapse('use_streamlink');});
+$('#use_youtubedl').change(function() {use_collapse('use_youtubedl');});
+$('#use_navertv').change(function() {use_collapse('use_navertv');});
+$('#use_kakaotv').change(function() {use_collapse('use_kakaotv');});
+$('#use_fix_url').change(function() {use_collapse('use_fix_url');});
+$('#use_plex_proxy').change(function() {use_collapse('use_plex_proxy');});
+
+$("body").on('click', '#youtubedl_install_btn', function(e){
+  e.preventDefault();
+  if ( streamlink_installed ) {
+    document.getElementById("confirm_title").innerHTML = "설치 확인";
+    document.getElementById("confirm_body").innerHTML = "이미 설치 되어 있습니다.<br>그래도 재설치 하시겠습니까?";
+    $('#confirm_button').attr('onclick', "do_install('youtubedl');");
+    $("#confirm_modal").modal();
+    return;
+  } else {
+    do_install('youtubedl')
+  }
+});
+
+
+$("body").on('click', '#streamlink_install_btn', function(e){
+  e.preventDefault();
+  if ( streamlink_installed ) {
+    document.getElementById("confirm_title").innerHTML = "설치 확인";
+    document.getElementById("confirm_body").innerHTML = "이미 설치 되어 있습니다.<br>그래도 재설치 하시겠습니까?";
+    $('#confirm_button').attr('onclick', "do_install('streamlink');");
+    $("#confirm_modal").modal();
+    return;
+  } else {
+    do_install('streamlink')
+  }
+});
+
+function do_install(target) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/install',
+    type: "POST", 
+    cache: false,
+    data:{target:target},
+    dataType: "json",
+    success: function (data) {
+      command_modal_show('설치')
+    }
+  });
+}
+
+
+$("body").on('click', '#get_tving_logindata_btn', function(e){
+  e.preventDefault();
+  get_logindata('tving');
+});
+
+$("body").on('click', '#get_wavve_logindata_btn', function(e){
+  e.preventDefault();
+  get_logindata('wavve');
+});
+
+function get_logindata(site) {
+  $.ajax({
+    url: '/' + package_name + '/ajax/get_logindata',
+    type: "POST", 
+    cache: false,
+    data:{site:site},
+    dataType: "json",
+    success: function (data) {
+      document.getElementById("modal_title").innerHTML = "로그인 정보";
+      document.getElementById("modal_body").innerHTML = "<pre>"+data + "</pre>";
+      $("#large_modal").modal();
+    }
+  });
+}
+
+
+
+
+</script>    
+{% endblock %}
