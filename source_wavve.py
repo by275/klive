@@ -82,7 +82,7 @@ class SourceWavve(SourceBase):
         try:
             proxy = Wavve.get_proxy()
             proxies = Wavve.get_proxies()
-            headers = {"user-agent": "curl/7.81.0"}
+            headers = {"user-agent": ModelSetting.get("wavve_user_agent")}
             while True:
                 data = requests.get(url, proxies=proxies, headers=headers).text
                 prefix = url.split('?')[0].rsplit('/', 1)[0]

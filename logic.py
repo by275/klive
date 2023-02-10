@@ -43,6 +43,7 @@ class Logic(object):
         'use_wavve' : 'True',
         'wavve_quality' : 'HD',
         'wavve_streaming_type' : '1',
+        'wavve_user_agent': '',
         'wavve_vod_page' : '5',
 
         'use_tving' : 'False',

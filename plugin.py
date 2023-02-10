@@ -308,7 +308,7 @@ def api(sub):
             """
             headers = {'Connection' : 'keep-alive'}
             if "wavve.com" in url:
-                headers.update({"user-agent": "curl/7.81.0"})
+                headers.update({"user-agent": ModelSetting.get("wavve_user_agent")})
             r = requests.get(url, headers=headers, stream=True, proxies=proxies, verify=False)
             rv = Response(r.iter_content(chunk_size=1048576), r.status_code, content_type=r.headers['Content-Type'], direct_passthrough=True)
             return rv

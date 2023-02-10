@@ -26,6 +26,7 @@
       <div id="use_wavve_div" class="collapse">
         {{ macros.setting_select('wavve_quality', '웨이브 화질', [['FHD','FHD'], ['HD','HD'], ['SD', 'SD']], col='3', value=arg['wavve_quality'])}}
         {{ macros.setting_radio('wavve_streaming_type', 'Wavve 스트리밍 타입', ['직접연결', 'SJVA사용', 'Redirect'], value=arg['wavve_streaming_type'], desc=['웨이브는 방송 요청을 한 IP와 Player IP가 일치해야만 합니다.', 'Redirect : 가장 좋습니다만 Player에 따라 10분 후 중지될 수 있습니다.', '중지가 안된다면 이 방법으로 사용하세요. 동일 네트워크의 Tvheadend에 연결할 때 사용합니다.', '직접연결 : SJVA와 Player가 동일 네트워크 일 때 사용합니다. SJVA사용 옵션보다 성능이 좋습니다.', 'SJVA사용 : 타 네트워크에서 재생할 때 사용합니다. SJVA가 방송 데이터를 받아서 Player에 보냅니다.']) }}
+        {{ macros.setting_input_textarea('wavve_user_agent', 'Wavve User-Agent', value=arg['wavve_user_agent'], desc=None, row='5') }}
         {{ macros.m_hr() }}
         {{ macros.setting_input_int('wavve_vod_page', 'VOD 탐색 페이지', value=arg['wavve_vod_page'], min='1', desc=['최신 VOD 탐색 페이지 수']) }}
       </div>
