@@ -77,26 +77,10 @@ class SourceKBS(SourceBase):
     @classmethod
     def get_kbs_url(cls, source_id):
         try:
-            tmp = 'http://onair.kbs.co.kr/index.html?sname=onair&stype=live&ch_code=%s' % source_id
+            tmp = 'https://cfpwwwapi.kbs.co.kr/api/v1/landing/live/channel_code/%s' % source_id
             #logger.error(tmp)
-            data = requests.get(tmp, headers=default_headers).text
-            idx1 = data.find('var channel = JSON.parse') + 26
-            idx2 = data.find(');', idx1)-1
-            data = data[idx1:idx2].replace('\\', '')
-            data = json.loads(data)
-            max = 0
-            url = None
+            data = requests.get(tmp, headers=default_headers).json()
             return data['channel_item'][0]['service_url']
-
-            for item in data['channel_item']:
-                #logger.debug(item)
-                tmp = int(item['bitrate'].replace('Kbps', ''))
-                if tmp > max:
-                    url = item['service_url']
-                    max = tmp
-            #logger.debug(tmp)
-            #logger.debug(url)
-            return url
         except Exception as exception: 
             logger.error('Exception:%s', exception)
             logger.error(traceback.format_exc())
