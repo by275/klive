@@ -93,7 +93,7 @@ class SourceWavve(SourceBase):
             new_data = ""
             for line in data.split('\n'):
                 line = line.strip()
-                if line.startswith != '#' and '.ts?' in line:
+                if line.startswith != '#' and '.ts' in line:
                     line = f"{prefix}/{line}"
                 new_data += f"{line}\n"
             if ModelSetting.get('wavve_streaming_type') == '0': #
